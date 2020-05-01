@@ -1,0 +1,53 @@
+Dim cell As Range
+Dim filename As String
+Dim fullfilename As String
+Dim rownumber As Long
+Dim columnnumber As Long
+Sub CreateHyperLinks()
+
+Dim fileobj As Object
+Dim folderobj As Object
+Dim fpath As String
+Dim fDialog As FileDialog
+Dim filetype As String
+
+Set fDialog = Application.FileDialog(msoFileDialogFolderPicker)
+If fDialog.Show = -1 Then
+    fpath = fDialog.SelectedItems(1)
+End If
+Set fDialog = Nothing
+If fpath = "" Then Exit Sub
+
+filetype = InputBox("Enter file type")
+
+For Each cell In Selection
+    filename = cell.Value
+    fullfilename = filename & "." & filetype
+    rownumber = cell.Row
+    columnnumber = cell.Column
+    Set fDialog = Nothing
+    Call Recurse(fpath)
+Next cell
+
+End Sub
+Function Recurse(sPath As String) As String
+
+    Dim FSO As New FileSystemObject
+    Dim myFolder As folder
+    Dim mySubFolder As folder
+    Dim myFile As file
+
+    Set myFolder = FSO.GetFolder(sPath)
+
+    For Each mySubFolder In myFolder.SubFolders
+        For Each myFile In mySubFolder.Files
+            If myFile.Name Like ("*" & fullfilename) Then
+                Debug.Print myFile.Name & " in " & myFile.path
+                cell.Hyperlinks.Add Cells(rownumber, columnnumber), myFile.path, , , filename
+                Exit For
+            End If
+        Next
+        Recurse = Recurse(mySubFolder.path)
+    Next
+
+End Function
